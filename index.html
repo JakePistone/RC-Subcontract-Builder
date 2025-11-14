@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reserve Construction Subcontract Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{
+      --primary:#1a56db;--primary-hover:#1e40af;--secondary:#f3f4f6;
+      --text:#1f2937;--text-light:#6b7280;--border:#d1d5db;
+      --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+      --radius:12px;--shadow:0 10px 15px -3px rgba(0,0,0,.1);
+      --transition:all .2s ease;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);
+      color:var(--text);line-height:1.6;padding:2rem;min-height:100vh;
+    }
+    .container{max-width:960px;margin:0 auto;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid #e5e7eb}
+    header{
+      background:linear-gradient(135deg,#1e40af 0%,#1a56db 100%);
+      color:#fff;padding:2rem 2.5rem;text-align:center;position:relative;
+    }
+    header::before{
+      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+      background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L100,30 L100,100 L0,100 Z" fill="rgba(255,255,255,.05)"/></svg>') no-repeat bottom;
+      background-size:cover;
+    }
+    .logo{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:.5rem}
+    .logo i{font-size:2rem}
+    .logo span{font-size:1.5rem;font-weight:700}
+    header h1{font-size:1.75rem;font-weight:700;margin:0}
+    header p{font-size:.95rem;opacity:.9;margin-top:.5rem}
+    .content{padding:2.5rem}
+    .step{margin-bottom:2rem;background:#fff;border-radius:var(--radius);padding:1.5rem;border:1px solid #e5e7eb}
+    .step:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.05)}
+    .step-label{display:flex;align-items:center;font-weight:600;color:var(--text);margin-bottom:.75rem;font-size:1.05rem}
+    .step-number{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--primary);color:#fff;border-radius:50%;font-size:.9rem;font-weight:700;margin-right:.75rem;box-shadow:0 2px 4px rgba(26,86,219,.2)}
+    input[type=file],textarea,input[type=text],select{
+      width:100%;padding:.875rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius);font-size:.95rem;transition:var(--transition);background:#fff
+    }
+    textarea{min-height:200px;font-family:'Courier New',monospace;resize:vertical;line-height:1.5}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.15)}
+    .filter-input{margin-bottom:.75rem}
+    select{height:260px;font-size:.95rem}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.875rem 1.75rem;font-size:1rem;font-weight:600;color:#fff;background:var(--primary);border:none;border-radius:var(--radius);cursor:pointer;transition:var(--transition);box-shadow:0 4px 6px -1px rgba(26,86,219,.2);min-width:200px
+    }
+    .btn:hover:not(:disabled){background:var(--primary-hover);transform:translateY(-1px)}
+    .btn:disabled{background:#9ca3af;cursor:not-allowed;opacity:.7}
+    .loading-msg{margin-top:1rem;color:var(--warning);font-weight:500;font-size:.9rem;display:flex;align-items:center;gap:.5rem}
+    .loading-msg::before{content:"";width:18px;height:18px;border:2px solid #fbbf24;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .note{
+      background:linear-gradient(135deg,#fefce8 0%,#fffbeb 100%);border-left:5px solid #fbbf24;padding:1.5rem 1.75rem;border-radius:0 var(--radius) var(--radius) 0;margin-top:2.5rem;font-size:.9rem;color:#92400e;border:1px solid #fde68a
+    }
+    .note h3{margin:0 0 .75rem;font-size:1.1rem;color:#b45309;display:flex;align-items:center;gap:.5rem}
+    .note h3 i{color:#f59e0b}
+    .note ul{margin:1rem 0;padding-left:1.5rem}
+    .note li{margin-bottom:.5rem}
+    .note code{background:#fffbeb;padding:.2rem .4rem;border-radius:6px;font-family:'Courier New',monospace;font-size:.85rem;border:1px solid #fde68a}
+    .status{margin-top:1rem;font-size:.85rem;color:var(--text-light);display:flex;align-items:center;gap:.5rem}
+    .status i{color:var(--success)}
+    .sub-preview{margin-top:1rem;padding:1rem;background:#f8fafc;border:1px solid #e5e7eb;border-radius:var(--radius);font-size:.9rem}
+    .sub-preview h4{margin:0 0 .5rem;font-weight:600;color:var(--text)}
+    .sub-preview p{margin:.25rem 0;color:var(--text-light)}
+    .validation{margin-top:1rem;padding:1rem;border-radius:var(--radius);font-size:.9rem;border:1px solid}
+    .validation.success{background:#ecfdf5;color:#065f46;border-color:#86efac}
+    .validation.warning{background:#fffbeb;color:#92400e;border-color:#fbbf24}
+    .footer{text-align:center;padding:1.5rem;color:var(--text-light);font-size:.8rem;border-top:1px solid #e5e7eb;margin-top:2rem}
+    @media(max-width:640px){body{padding:1rem}.content{padding:1.5rem}header{padding:1.5rem}.logo span{font-size:1.3rem}header h1{font-size:1.5rem}}
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+    }
+    .modal-content {
+      background: white; padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-header h3 { margin: 0; font-size: 1.25rem; color: var(--danger); }
+    .close-modal { font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+    .modal-field { margin-bottom: 1rem; }
+    .modal-field label { display: block; margin-bottom: .25rem; font-weight: 600; font-size: .9rem; }
+    .modal-field input { width: 100%; padding: .75rem; border: 1.5px solid var(--border); border-radius: var(--radius); }
+    .modal-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1.5rem; }
+    .btn-small { padding: .5rem 1rem; font-size: .9rem; min-width: auto; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><i class="fas fa-hard-hat"></i><span>Reserve Construction</span></div>
+    <h1>Subcontract Generator</h1>
+    <p>Automated contract assembly powered by Egnyte &amp; Google Sheets</p>
+  </header>
+  <div class="content">
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-label"><span class="step-number">1</span> Upload Template (.docx)</div>
+      <input type="file" id="templateFile" accept=".docx"/>
+    </div>
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-label"><span class="step-number">2</span> Project Data (JSON from Egnyte Copilot)</div>
+      <textarea id="jsonInput" placeholder='{
+  "DAY": "13",
+  "MONTH": "November",
+  "YEAR": "2025",
+  "TOTAL_AMOUNT": "$5,625",
+  ...
+}'></textarea>
+    </div>
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-label"><span class="step-number">3</span> Select Subcontractor</div>
+      <input type="text" id="subFilter" class="filter-input" placeholder="Filter by company name..."/>
+      <select id="subSelect" size="8"><option>-- Loading... --</option></select>
+      <div class="status" id="subStatus"><i class="fas fa-sync fa-spin"></i> Loading subcontractors...</div>
+      <div id="subPreview" class="sub-preview" style="display:none;">
+        <h4>Selected Subcontractor</h4>
+        <p><strong>Company:</strong> <span id="prevCompany"></span></p>
+        <p><strong>Address:</strong> <span id="prevAddress"></span></p>
+        <p><strong>Contact:</strong> <span id="prevContact"></span></p>
+        <p><strong>Phone:</strong> <span id="prevPhone"></span></p>
+        <p><strong>Email:</strong> <span id="prevEmail"></span></p>
+      </div>
+    </div>
+    <!-- Generate -->
+    <div class="step">
+      <button id="generateBtn" class="btn" disabled><i class="fas fa-file-word"></i> <span id="btnText">Generate Subcontract</span></button>
+      <div class="loading-msg" id="loadingMsg">Initializing engine...</div>
+      <div id="validationResult"></div>
+    </div>
+    <!-- Note -->
+    <div class="note">
+      <h3><i class="fas fa-info-circle"></i> How to Use</h3>
+      <ul>
+        <li>Use **exact** tags in the .docx: <code>[SUBCONTRACTOR_NAME]</code>, <code>[CONTACT_PHONE]</code>, etc.</li>
+        <li>Paste JSON from Egnyte Copilot</li>
+        <li>Select subcontractor – info appears below</li>
+        <li>If any field is blank → popup lets you fill or skip</li>
+        <li>Click <strong>Save & Continue</strong> → generates with blanks</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">&copy; 2025 Reserve Construction • Internal Tool • v2.1</div>
+</div>
+
+<!-- MODAL -->
+<div id="missingModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Complete Missing Fields</h3>
+      <span class="close-modal" onclick="closeMissingModal()">&times;</span>
+    </div>
+    <p style="margin-bottom:1rem;font-size:.9rem;color:var(--text-light);">Fill in or leave blank — all values will be saved.</p>
+    <div id="missingFields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-small" style="background:var(--danger)" onclick="closeMissingModal()">Cancel</button>
+      <button class="btn btn-small" onclick="saveMissingFields()">Save & Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Libraries -->
+<script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.min.js"></script>
+<script src="https://unpkg.com/docxtemplater@3.33.0/build/docxtemplater.min.js"></script>
+<script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+  // --------------------------------------------------------------
+  // CONFIG
+  // --------------------------------------------------------------
+  const SHEET_ID = '2PACX-1vTAglQKh5LNKfEHW8FQBX3fNh0GQGqigt-FqxwQP3ad8gPn3XJ-SidxlT1pHgjVA0iSWElgZIQ_0vJ5';
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+
+  // REQUIRED FIELDS — DAY, MONTH, YEAR are auto-filled → NOT in popup
+  const REQUIRED_FIELDS = [
+    'CONTRACTOR_NAME', 'CONTRACTOR_ADDRESS',
+    'PM_NAME', 'PM_PHONE', 'PM_EMAIL',
+    'SUBCONTRACTOR_NAME', 'SUBCONTRACTOR_ADDRESS',
+    'CONTACT_NAME', 'CONTACT_PHONE', 'CONTACT_EMAIL',
+    'PROJECT_NAME', 'PROJECT_ADDRESS',
+    'OWNER_NAME', 'OWNER_ADDRESS',
+    'ARCHITECT_NAME', 'ARCHITECT_ADDRESS'
+  ];
+
+  // --------------------------------------------------------------
+  // DOM READY
+  // --------------------------------------------------------------
+  document.addEventListener('DOMContentLoaded', () => {
+    const els = {
+      file: document.getElementById('templateFile'),
+      json: document.getElementById('jsonInput'),
+      filter: document.getElementById('subFilter'),
+      select: document.getElementById('subSelect'),
+      status: document.getElementById('subStatus'),
+      preview: document.getElementById('subPreview'),
+      prevCompany: document.getElementById('prevCompany'),
+      prevAddress: document.getElementById('prevAddress'),
+      prevContact: document.getElementById('prevContact'),
+      prevPhone: document.getElementById('prevPhone'),
+      prevEmail: document.getElementById('prevEmail'),
+      btn: document.getElementById('generateBtn'),
+      btnText: document.getElementById('btnText'),
+      loading: document.getElementById('loadingMsg'),
+      validation: document.getElementById('validationResult'),
+      modal: document.getElementById('missingModal'),
+      missingFields: document.getElementById('missingFields')
+    };
+
+    let subs = [];
+    let currentData = {};
+
+    // 1. Wait for libraries
+    function waitForLibs() {
+      return new Promise(resolve => {
+        const check = () => {
+          if (window.PizZip && window.docxtemplater && window.saveAs && window.Papa) resolve();
+          else setTimeout(check, 50);
+        };
+        check();
+      });
+    }
+
+    waitForLibs().then(() => {
+      els.btn.disabled = false;
+      els.btnText.textContent = 'Generate Subcontract';
+      els.loading.style.display = 'none';
+    });
+
+    // 2. Load subcontractors
+    async function loadSubcontractors() {
+      const cached = localStorage.getItem('subcontractor_cache');
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 3600000) {
+          subs = data;
+          populateSelect();
+          els.status.innerHTML = `<i class="fas fa-check-circle"></i> ${subs.length} subcontractor${subs.length !== 1 ? 's' : ''} (cached)`;
+          return;
+        }
+      }
+
+      els.status.innerHTML = '<i class="fas fa-sync fa-spin"></i> Fetching data...';
+      try {
+        const resp = await fetch(CSV_URL);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const csv = await resp.text();
+
+        Papa.parse(csv, {
+          complete: result => {
+            const rows = result.data;
+            if (rows.length < 2) throw new Error('Empty sheet');
+
+            const hdr = rows[0].map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+            const idx = {
+              company: hdr.findIndex(h => h === 'companytitle'),
+              contact: hdr.findIndex(h => h === 'name'),
+              email:   hdr.findIndex(h => h === 'contact info'),
+              phone:   hdr.findIndex(h => h === 'phone number'),
+              address: hdr.findIndex(h => h === 'address')
+            };
+            if (idx.company === -1) throw new Error('Header "COMPANYTITLE" missing');
+
+            subs = rows.slice(1)
+              .filter(r => r[idx.company])
+              .map((r, i) => ({
+                id: i,
+                company: (r[idx.company] || '').replace(/^"|"$/g, '').trim(),
+                address: (r[idx.address] || '').replace(/^"|"$/g, '').trim(),
+                contact: (r[idx.contact] || '').replace(/^"|"$/g, '').trim(),
+                phone:   (r[idx.phone]   || '').replace(/^"|"$/g, '').trim(),
+                email:   (r[idx.email]   || '').replace(/^"|"$/g, '').trim()
+              }));
+
+            localStorage.setItem('subcontractor_cache', JSON.stringify({ data: subs, timestamp: Date.now() }));
+            populateSelect();
+            els.status.innerHTML = `<i class="fas fa-check-circle"></i> ${subs.length} subcontractor${subs.length !== 1 ? 's' : ''} loaded.`;
+          },
+          skipEmptyLines: true
+        });
+      } catch (e) {
+        els.status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${e.message}`;
+        els.status.style.color = 'var(--danger)';
+      }
+    }
+
+    // 3. Populate & filter
+    function populateSelect(filter = '') {
+      els.select.innerHTML = '<option value="">-- Select a Subcontractor --</option>';
+      subs
+        .filter(s => s.company.toLowerCase().includes(filter.toLowerCase()))
+        .forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = s.company;
+          els.select.appendChild(opt);
+        });
+    }
+    els.filter.addEventListener('input', () => populateSelect(els.filter.value));
+
+    // 4. Selection → preview + JSON
+    els.select.addEventListener('change', () => {
+      const sub = subs.find(s => s.id == els.select.value);
+      if (!sub) { els.preview.style.display = 'none'; return; }
+
+      els.prevCompany.textContent = sub.company;
+      els.prevAddress.textContent = sub.address;
+      els.prevContact.textContent = sub.contact;
+      els.prevPhone.textContent   = sub.phone;
+      els.prevEmail.textContent   = sub.email;
+      els.preview.style.display = 'block';
+
+      let data = {};
+      try { data = JSON.parse(els.json.value || '{}'); } catch {}
+      Object.assign(data, {
+        SUBCONTRACTOR_NAME: sub.company,
+        SUBCONTRACTOR_ADDRESS: sub.address,
+        CONTACT_NAME: sub.contact,
+        CONTACT_PHONE: sub.phone,
+        CONTACT_EMAIL: sub.email
+      });
+      els.json.value = JSON.stringify(data, null, 2);
+    });
+
+    // 5. MODAL: Fill or skip blanks (NO DAY/MONTH/YEAR)
+    function showMissingModal(missing) {
+      els.missingFields.innerHTML = '';
+      missing.forEach(field => {
+        const div = document.createElement('div');
+        div.className = 'modal-field';
+        div.innerHTML = `
+          <label for="miss_${field}">${field.replace(/_/g, ' ')}:</label>
+          <input type="text" id="miss_${field}" placeholder="Leave blank to keep empty" />
+        `;
+        els.missingFields.appendChild(div);
+      });
+      els.modal.style.display = 'flex';
+    }
+
+    window.closeMissingModal = () => {
+      els.modal.style.display = 'none';
+    };
+
+    window.saveMissingFields = () => {
+      const inputs = els.missingFields.querySelectorAll('input');
+      inputs.forEach(input => {
+        const key = input.id.replace('miss_', '');
+        currentData[key] = input.value.trim(); // Save even if blank
+      });
+      els.json.value = JSON.stringify(currentData, null, 2);
+      closeMissingModal();
+      generateDocument(); // Continue
+    };
+
+    // 6. GENERATE — BLANK TAGS BECOME EMPTY STRING
+    async function generateDocument() {
+      if (!els.file.files[0]) return alert('Upload a .docx template.');
+      if (!els.json.value.trim()) return alert('Paste JSON data.');
+
+      try { currentData = JSON.parse(els.json.value); } catch (e) { return alert('Invalid JSON: ' + e.message); }
+
+      // Check for missing required fields
+      const missing = REQUIRED_FIELDS.filter(f => !currentData[f] && currentData[f] !== '');
+      if (missing.length > 0) {
+        showMissingModal(missing);
+        return;
+      }
+
+      // Auto-fill date
+      const today = new Date();
+      currentData.DAY = String(today.getDate()).padStart(2,'0');
+      currentData.MONTH = today.toLocaleString('default', {month:'long'});
+      currentData.YEAR = today.getFullYear();
+
+      let content;
+      try { content = await els.file.files[0].arrayBuffer(); } catch { return alert('Failed to read file.'); }
+
+      let zip, doc;
+      try { zip = new PizZip(content); } catch { return alert('Invalid .docx file.'); }
+
+      try {
+        doc = new docxtemplater(zip, {
+          paragraphLoop: true,
+          linebreaks: true,
+          delimiters: { start: '[', end: ']' },
+          nullGetter: (tag) => ""  // ← THIS IS THE KEY FIX
+        });
+
+        const templateTags = doc.getTags ? doc.getTags() : [];
+        const jsonKeys = Object.keys(currentData);
+        const missingTags = templateTags.filter(t => !jsonKeys.includes(t));
+        const unused = jsonKeys.filter(k => !templateTags.includes(k) && !['DAY','MONTH','YEAR'].includes(k));
+
+        let vhtml = '';
+        if (!missingTags.length && !unused.length) {
+          vhtml = `<div class="validation success"><i class="fas fa-check-circle"></i> All tags matched.</div>`;
+        } else {
+          vhtml = `<div class="validation warning">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Tag Check:</strong><br>
+            ${missingTags.length ? `Missing: <code>[${missingTags.join(']</code>, <code>[')}]</code><br>` : ''}
+            ${unused.length  ? `Unused : <code>${unused.join('</code>, <code>')}</code>` : ''}
+          </div>`;
+        }
+        els.validation.innerHTML = vhtml;
+
+        if (missingTags.length && !confirm(`Warning: ${missingTags.length} tag(s) missing. Continue?`)) return;
+
+        doc.setData(currentData);
+        doc.render();
+
+        const blob = doc.getZip().generate({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+        saveAs(blob, 'Filled_Subcontract.docx');
+        alert('Success! Download started.');
+      } catch (e) {
+        const msg = e.properties?.explanation || e.message;
+        alert('Template Error:\n' + msg);
+      }
+    }
+
+    els.btn.addEventListener('click', generateDocument);
+
+    // Start
+    loadSubcontractors();
+  });
+</script>
+</body>
+</html>
